@@ -8,7 +8,7 @@ Dave Seidel
 
 NOTE: This is alpha-quality firmware at best! I am open to suggestions for improvements and/or modifications. I don't necessarily see this as worthy of a complete version firmware, but it might5 be usable as an effect as a larger design.
 
-Stereo tremolo effect based on the Chebyshev polynomial. Left channel uses coefficient based on the first six odd-numbered partials, right channel does the same but with even-numbered partials. In both cases, the coefficient are modulated by LFOs whose frequency is proportional to the partial number, meaning that each of the twelve LFOs (six per channel) are operating at a different speed, and the left channels has different modulators than the right channel.
+Stereo tremolo effect based on the Chebyshev polynomial. Left channel uses coefficient based on the first six odd-numbered partials, right channel does the same but with even-numbered partials. In both cases, the coefficient are modulated by LFOs whose frequency is proportional to the partial number, meaning that each of the twelve LFOs (six per channel) are operating at a different speed, and the left channel has different modulators than the right channel.
 
 The processing chain for each channel is: input-> LPF -> tanh saturation -> modulated Chebyshev transform -> dcblock -> output.
 
