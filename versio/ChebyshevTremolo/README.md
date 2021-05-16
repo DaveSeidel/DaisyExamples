@@ -13,8 +13,8 @@ Stereo tremolo effect based on the Chebyshev polynomial. Left channel uses coeff
 The processing chain for each channel is: input-> LPF -> tanh saturation -> modulated Chebyshev transform -> dcblock -> output.
 
 Controls:
-* Knob 0: overall tremolo spedd for left channel
-* Knob 1: overall tremolo spedd for right channel
+* Knob 0: overall tremolo speed for left channel
+* Knob 1: overall tremolo speed for right channel
 * Knob 2: dry/wet balance
 * Knob 3: LPF cutoff
 * Knob 4: tanh factor for positive values
@@ -24,5 +24,5 @@ Controls:
 * Sw 2: LFO frequency control, where center means frequency is proportional to partial number, left means all LFO on each side are the same speed, right means LFOs are not used
 * Button: not used
 
-The LEDS just use the demo bahavior, nothing specific to the effect yet.
+The LEDS just use the demo behavior, nothing specific to the effect yet.
 
