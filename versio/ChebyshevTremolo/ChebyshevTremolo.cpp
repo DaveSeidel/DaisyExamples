@@ -1,0 +1,178 @@
+#include "time.h"
+#include "daisy_versio.h"
+#include "daisysp.h"
+#include "chebytrem.h"
+
+using namespace daisy;
+using namespace daisysp;
+using namespace ds_versio;
+
+DaisyVersio hw;
+Switch3 rate_sw, uni_sw;
+DcBlock block_l, block_r;
+Tone lp_l, lp_r;
+ChebyTrem cv_l, cv_r;
+
+Parameter mix_param;
+Parameter speed_l_param, speed_r_param;
+Parameter lp_param;
+Parameter tanh_k1_param, tanh_k2_param;
+
+float sr;
+float mix, last_mix = -1.0f;
+
+// round to first two decimal places
+float round2(float var) {
+    float value = (int)(var * 100 + 0.5f);
+    return (float)value / 100;
+}
+
+// borrowed from moogladder
+float my_tanh(float x)
+{
+    int sign = 1;
+    if(x < 0) {
+        sign = -1;
+        x    = -x;
+        return x * sign;
+    }
+    else if(x >= 4.0f) {
+        return sign;
+    }
+    else if(x < 0.5f) {
+        return x * sign;
+    }
+    return sign * tanhf(x);
+}
+
+// https://github.com/johannesmenzel/SRPlugins/wiki/DSP-ALGORITHMS-Saturation
+float saturate(float x, float k1, float k2) {
+    float out;
+    if (x >= 0) {
+        // out = my_tanh(k1 * x) / my_tanh(k1);
+        out = my_tanh(k1 * x);
+    }
+    else {
+        // out = my_tanh(k2 * x) / my_tanh(k2);
+        out = my_tanh(k2 * x);
+    }
+    return out;
+}
+
+void setUni() {
+    bool uni = uni_sw.Read() != 0 ? true : false;
+    cv_l.setUni(uni);
+    cv_r.setUni(uni);
+}
+
+void setRateType() {
+    int rate_type = rate_sw.Read();
+    cv_l.setRateType(rate_type);
+    cv_r.setRateType(rate_type);
+}
+
+void setSpeed() {
+    float speed_l = speed_l_param.Process();
+    float speed_r = speed_r_param.Process();
+    cv_l.setSpeed(speed_l);
+    cv_r.setSpeed(speed_r);
+}
+
+void setMix() {
+    float _mix = round2(mix_param.Process());
+    if (_mix != last_mix) {
+        last_mix = mix;
+        mix = _mix;
+    }
+}
+
+void resetChebyVib(bool init=false) {
+    cv_l.Reset(init);
+    cv_r.Reset(init);
+}
+
+void callback(float *in, float *out, size_t size) {
+    setUni();
+    setMix();
+    setSpeed();
+    setRateType();
+    resetChebyVib();
+
+    float lpf = lp_param.Process();
+    lp_l.SetFreq(lpf);
+    lp_r.SetFreq(lpf);
+
+    float k1 = tanh_k1_param.Process();
+    float k2 = tanh_k2_param.Process();
+    
+    for (int i = 0; i < int(size); i += 2) {
+        float left  = in[i];
+        float right = in[i+1];
+
+        float left_  = lp_l.Process(left);
+        float right_ = lp_r.Process(right);
+
+        if (k1 >= 0.5f && k2 >= 0.5f) {
+            left_  = saturate(left_, k1, k2);
+            right_ = saturate(right_, k1, k2);
+        }
+
+        left_  = cv_l.Process(left_);
+        right_ = cv_r.Process(right_);
+
+        left_  = block_l.Process(left_);
+        right_ = block_r.Process(right_);
+
+        left_  = (mix * left_)  + ((1.0f - mix) * left);
+        right_ = (mix * right_) + ((1.0f - mix) * right);
+
+        out[i]   = left_;
+        out[1+i] = right_;
+    }
+}
+
+int main(void) {
+    hw.Init();
+    sr = hw.AudioSampleRate();
+
+    // overall speed of lef/right channel LFOs
+    speed_l_param.Init(hw.knobs[DaisyVersio::KNOB_0], 0.01f, 0.8f, Parameter::LINEAR);
+    speed_r_param.Init(hw.knobs[DaisyVersio::KNOB_1], 0.01f, 0.8f, Parameter::LINEAR);
+
+    // dry/wet mix
+    mix_param.Init(hw.knobs[DaisyVersio::KNOB_2], 0.f, 1.0f, Parameter::LINEAR);
+    
+    // LPF cuttoff frequency
+    lp_param.Init(hw.knobs[DaisyVersio::KNOB_3], 60, 4000, Parameter::LINEAR);
+
+    // separate saturation factors for positive and negative input samples    
+    tanh_k1_param.Init(hw.knobs[DaisyVersio::KNOB_4], 0.5f, 2.0, Parameter::LINEAR);
+    tanh_k2_param.Init(hw.knobs[DaisyVersio::KNOB_5], 0.5f, 2.0, Parameter::LINEAR);
+
+    // LFO nipolar/bipolar control
+    uni_sw = hw.sw[DaisyVersio::SW_0];
+
+    // LFO rate type
+    rate_sw = hw.sw[DaisyVersio::SW_1];
+
+    // Chebyshev tremolo instances, one for each channel
+    cv_l.Init(sr, 2, 0, true, ChebyTrem::PROPORTIONAL);
+    cv_r.Init(sr, 2, 1, true, ChebyTrem::PROPORTIONAL);
+
+    // LPF instances
+    lp_l.Init(sr);
+    lp_r.Init(sr);
+
+    // DcBlock instances 
+    block_l.Init(sr);
+    block_r.Init(sr);
+
+    hw.StartAudio(callback);
+    hw.StartAdc();
+
+    while(1) {
+        hw.ProcessAnalogControls();
+        hw.UpdateExample();
+        hw.UpdateLeds();
+    }
+}
