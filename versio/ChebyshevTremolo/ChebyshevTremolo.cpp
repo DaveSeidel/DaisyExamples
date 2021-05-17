@@ -28,7 +28,7 @@ float round2(float var) {
 }
 
 // borrowed from moogladder
-float my_tanh(float x)
+float fast_tanh(float x)
 {
     int sign = 1;
     if(x < 0) {
@@ -49,12 +49,10 @@ float my_tanh(float x)
 float saturate(float x, float k1, float k2) {
     float out;
     if (x >= 0) {
-        // out = my_tanh(k1 * x) / my_tanh(k1);
-        out = my_tanh(k1 * x);
+        out = fast_tanh(k1 * x) / fast_tanh(k1);
     }
     else {
-        // out = my_tanh(k2 * x) / my_tanh(k2);
-        out = my_tanh(k2 * x);
+        out = fast_tanh(k2 * x) / fast_tanh(k2);
     }
     return out;
 }
@@ -149,7 +147,7 @@ int main(void) {
     tanh_k1_param.Init(hw.knobs[DaisyVersio::KNOB_4], 0.5f, 2.0, Parameter::LINEAR);
     tanh_k2_param.Init(hw.knobs[DaisyVersio::KNOB_5], 0.5f, 2.0, Parameter::LINEAR);
 
-    // LFO nipolar/bipolar control
+    // LFO unipolar/bipolar control
     uni_sw = hw.sw[DaisyVersio::SW_0];
 
     // LFO rate type

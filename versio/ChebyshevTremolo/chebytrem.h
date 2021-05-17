@@ -90,7 +90,7 @@ class ChebyTrem {
 
   private:
     static const int NUM_BANKS = 2;
-    static const int MAX_PART = 12;
+    static const int MAX_PART = 14;
 
     float sr_;
     
@@ -109,9 +109,9 @@ class ChebyTrem {
 
     const float banks_[NUM_BANKS][MAX_PART+1] = {
         // odd partials
-        {  12, PA(1), 0.f,   PA(3),  0.f,   PA(5), 0.f,   PA(7), 0.f,   PA(9),  0.f,    PA(11), 0.f    },
+        {  14, PA(1), 0.f,   PA(3),  0.f,   PA(5), 0.f,   PA(7), 0.f,   PA(9),  0.f,    PA(11), 0.f, PA(13), 0.f    },
         // even partials
-        {  12, 0.f,   PA(2), 0.f,    PA(4), 0.f,   PA(6), 0.f,   PA(8), 0.f,    PA(10), 0.f,    PA(12) },
+        {  14, 0.f,   PA(2), 0.f,    PA(4), 0.f,   PA(6), 0.f,   PA(8), 0.f,    PA(10), 0.f,    PA(12), 0.f, PA(15) },
     };
 
     void KN(float x, int n);
