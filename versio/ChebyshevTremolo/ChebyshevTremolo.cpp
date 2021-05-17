@@ -110,11 +110,9 @@ void callback(float *in, float *out, size_t size) {
         float left_  = lp_l.Process(left);
         float right_ = lp_r.Process(right);
 
-        if (k1 >= 0.5f && k2 >= 0.5f) {
-            left_  = saturate(left_, k1, k2);
-            right_ = saturate(right_, k1, k2);
-        }
-
+        left_  = saturate(left_, k1, k2);
+        right_ = saturate(right_, k1, k2);
+ 
         left_  = ct_l.Process(left_);
         right_ = ct_r.Process(right_);
 
@@ -140,12 +138,12 @@ int main(void) {
     // dry/wet mix
     mix_param.Init(hw.knobs[DaisyVersio::KNOB_2], 0.f, 1.0f, Parameter::LINEAR);
     
-    // LPF cuttoff frequency
+    // LPF cutoff frequency
     lp_param.Init(hw.knobs[DaisyVersio::KNOB_3], 60, 4000, Parameter::LINEAR);
 
     // separate saturation factors for positive and negative input samples    
-    tanh_k1_param.Init(hw.knobs[DaisyVersio::KNOB_4], 0.5f, 2.0, Parameter::LINEAR);
-    tanh_k2_param.Init(hw.knobs[DaisyVersio::KNOB_5], 0.5f, 2.0, Parameter::LINEAR);
+    tanh_k1_param.Init(hw.knobs[DaisyVersio::KNOB_4], 0.f, 2.0, Parameter::LINEAR);
+    tanh_k2_param.Init(hw.knobs[DaisyVersio::KNOB_5], 0.f, 2.0, Parameter::LINEAR);
 
     // LFO unipolar/bipolar control
     uni_sw = hw.sw[DaisyVersio::SW_0];
