@@ -11,7 +11,7 @@ DaisyVersio hw;
 Switch3 rate_sw, uni_sw;
 DcBlock block_l, block_r;
 Tone lp_l, lp_r;
-ChebyTrem cv_l, cv_r;
+ChebyTrem ct_l, ct_r;
 
 Parameter mix_param;
 Parameter speed_l_param, speed_r_param;
@@ -59,21 +59,21 @@ float saturate(float x, float k1, float k2) {
 
 void setUni() {
     bool uni = uni_sw.Read() != 0 ? true : false;
-    cv_l.setUni(uni);
-    cv_r.setUni(uni);
+    ct_l.setUni(uni);
+    ct_r.setUni(uni);
 }
 
 void setRateType() {
     int rate_type = rate_sw.Read();
-    cv_l.setRateType(rate_type);
-    cv_r.setRateType(rate_type);
+    ct_l.setRateType(rate_type);
+    ct_r.setRateType(rate_type);
 }
 
 void setSpeed() {
     float speed_l = speed_l_param.Process();
     float speed_r = speed_r_param.Process();
-    cv_l.setSpeed(speed_l);
-    cv_r.setSpeed(speed_r);
+    ct_l.setSpeed(speed_l);
+    ct_r.setSpeed(speed_r);
 }
 
 void setMix() {
@@ -85,8 +85,8 @@ void setMix() {
 }
 
 void resetChebyVib(bool init=false) {
-    cv_l.Reset(init);
-    cv_r.Reset(init);
+    ct_l.Reset(init);
+    ct_r.Reset(init);
 }
 
 void callback(float *in, float *out, size_t size) {
@@ -115,8 +115,8 @@ void callback(float *in, float *out, size_t size) {
             right_ = saturate(right_, k1, k2);
         }
 
-        left_  = cv_l.Process(left_);
-        right_ = cv_r.Process(right_);
+        left_  = ct_l.Process(left_);
+        right_ = ct_r.Process(right_);
 
         left_  = block_l.Process(left_);
         right_ = block_r.Process(right_);
@@ -154,8 +154,8 @@ int main(void) {
     rate_sw = hw.sw[DaisyVersio::SW_1];
 
     // Chebyshev tremolo instances, one for each channel
-    cv_l.Init(sr, 2, 0, true, ChebyTrem::PROPORTIONAL);
-    cv_r.Init(sr, 2, 1, true, ChebyTrem::PROPORTIONAL);
+    ct_l.Init(sr, 2, 0, true, ChebyTrem::PROPORTIONAL);
+    ct_r.Init(sr, 2, 1, true, ChebyTrem::PROPORTIONAL);
 
     // LPF instances
     lp_l.Init(sr);
