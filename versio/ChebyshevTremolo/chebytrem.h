@@ -57,7 +57,7 @@ struct LFO {
 };
 
 // amplitude/weight for a coeeficient based on which partial it represents
-#define PA(part)    (2.0f/(float)part)
+#define PA(part)    (part != 0 ? (2.0f/(float)part) : 0.f)
 
 class ChebyTrem {
   public:
@@ -65,8 +65,8 @@ class ChebyTrem {
     ~ChebyTrem() {}
 
     enum KIND {
-        FIRST_KIND  = 0,
-        SECOND_KIND = 1,
+        FIRST_KIND  = 1,
+        SECOND_KIND = 0,
         THIRD_KIND  = 2
     };
 
@@ -89,8 +89,8 @@ class ChebyTrem {
     void setRateType(int rateType);
 
   private:
-    static const int NUM_BANKS = 2;
-    static const int MAX_PART = 14;
+    static const int NUM_BANKS = 4;
+    static const int MAX_PART = 15;
 
     float sr_;
     
@@ -109,9 +109,14 @@ class ChebyTrem {
 
     const float banks_[NUM_BANKS][MAX_PART+1] = {
         // odd partials
-        {  14, PA(1), 0.f,   PA(3),  0.f,   PA(5), 0.f,   PA(7), 0.f,   PA(9),  0.f,    PA(11), 0.f,    PA(13), 0.f    },
+        {  MAX_PART, PA(1), PA(0), PA(3), PA(0), PA(5), PA(0), PA(7), PA(0), PA(9), PA(0),  PA(11), PA(0),  PA(13), PA(0),  PA(15) },
         // even partials
-        {  14, 0.f,   PA(2), 0.f,    PA(4), 0.f,   PA(6), 0.f,   PA(8), 0.f,    PA(10), 0.f,    PA(12), 0.f,    PA(15) },
+        {  MAX_PART, PA(0), PA(2), PA(0), PA(4), PA(0), PA(6), PA(0), PA(8), PA(0), PA(10), PA(0),  PA(12), PA(0),  PA(14), PA(0)  },
+
+        // prime partials
+        {  MAX_PART, PA(1), PA(2), PA(3), PA(0), PA(5), PA(0), PA(7), PA(0), PA(0), PA(0),  PA(11), PA(0),  PA(13), PA(0),  PA(0)  },
+        // non-prime partials
+        {  MAX_PART, PA(0), PA(0), PA(0), PA(4), PA(0), PA(6), PA(0), PA(8), PA(9), PA(10), PA(0),  PA(12), PA(0),  PA(14), PA(15) },
     };
 
     void KN(float x, int n);

@@ -8,7 +8,7 @@ using namespace daisysp;
 using namespace ds_versio;
 
 DaisyVersio hw;
-Switch3 rate_sw, uni_sw;
+Switch3 bank_sw, kind_sw;
 DcBlock block_l, block_r;
 Tone lp_l, lp_r;
 ChebyTrem ct_l, ct_r;
@@ -57,16 +57,32 @@ float saturate(float x, float k1, float k2) {
     return out;
 }
 
-void setUni() {
-    bool uni = uni_sw.Read() != 0 ? true : false;
-    ct_l.setUni(uni);
-    ct_r.setUni(uni);
+void setKind() {
+    int kind = kind_sw.Read();
+    ct_l.setKind(kind);
+    ct_r.setKind(kind);
 }
 
-void setRateType() {
-    int rate_type = rate_sw.Read();
-    ct_l.setRateType(rate_type);
-    ct_r.setRateType(rate_type);
+void setBanks() {
+    int banks = bank_sw.Read();
+    switch (banks) {
+        case 0:
+        default:
+            // odd vs. even
+            ct_l.setBank(0);
+            ct_r.setBank(1);
+            break;
+        case 1:
+            // prime vs. non-prime
+            ct_l.setBank(2);
+            ct_r.setBank(3);
+            break;
+        case 2:
+            // both prime
+            ct_l.setBank(2);
+            ct_r.setBank(2);
+            break;
+    }
 }
 
 void setSpeed() {
@@ -90,11 +106,11 @@ void resetChebyVib(bool init=false) {
 }
 
 void callback(float *in, float *out, size_t size) {
-    setUni();
-    setMix();
+    setKind();
+    setBanks();
     setSpeed();
-    setRateType();
     resetChebyVib();
+    setMix();
 
     float lpf = lp_param.Process();
     lp_l.SetFreq(lpf);
@@ -145,15 +161,15 @@ int main(void) {
     tanh_k1_param.Init(hw.knobs[DaisyVersio::KNOB_4], 0.f, 2.0, Parameter::LINEAR);
     tanh_k2_param.Init(hw.knobs[DaisyVersio::KNOB_5], 0.f, 2.0, Parameter::LINEAR);
 
-    // LFO unipolar/bipolar control
-    uni_sw = hw.sw[DaisyVersio::SW_0];
+    // Chebyshev kind (first/second/third) 
+    kind_sw = hw.sw[DaisyVersio::SW_0];
 
     // LFO rate type
-    rate_sw = hw.sw[DaisyVersio::SW_1];
+    bank_sw = hw.sw[DaisyVersio::SW_1];
 
     // Chebyshev tremolo instances, one for each channel
-    ct_l.Init(sr, 2, 0, true, ChebyTrem::PROPORTIONAL);
-    ct_r.Init(sr, 2, 1, true, ChebyTrem::PROPORTIONAL);
+    ct_l.Init(sr, 2, 2, true, ChebyTrem::PROPORTIONAL);
+    ct_r.Init(sr, 2, 3, true, ChebyTrem::PROPORTIONAL);
 
     // LPF instances
     lp_l.Init(sr);
