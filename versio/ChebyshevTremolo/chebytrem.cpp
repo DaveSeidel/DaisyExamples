@@ -83,6 +83,7 @@ void ChebyTrem::setSpeed(float speed) {
 
 // private
 
+// set up an LFO for each non-zero coefficient
 void ChebyTrem::setLFOs(bool init) {
     for (int j = 0; j < plen_; j++) {
         LFO *lfo = &lfos_[j];
@@ -133,6 +134,8 @@ void ChebyTrem::setLFOs(bool init) {
     }
 }
 
+// Chebyshev recurrence relation, using a buffer to avoid recursion
+// handles first three kinds
 void ChebyTrem::KN(float x, int n) {
     if (n == 0) {
         kn_data_[n] = 1.0f;
